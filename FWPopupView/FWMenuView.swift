@@ -415,18 +415,34 @@ extension FWMenuView {
         return self.maxItemSize.height
     }
     
+    
+    /// 配置 TableView 的单元格
+    /// 包含两层安全检查：类型转换和数组边界检查
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cellId", for: indexPath) as! FWMenuViewTableViewCell
-        cell.setupContent(title: (self.itemTitleArray != nil) ? self.itemTitleArray![indexPath.row] : nil , image: (self.itemImageArray != nil) ? self.itemImageArray![indexPath.row] : nil, property: self.vProperty as! FWMenuViewProperty)
+        // 第一层安全：类型转换检查
+        // 确保 cell 和 property 类型正确，如果转换失败返回空白 cell 避免崩溃
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "cellId", for: indexPath) as? FWMenuViewTableViewCell,
+              let property = self.vProperty as? FWMenuViewProperty else {
+            return UITableViewCell()
+        }
+        
+        // 第二层安全：数组边界检查
+        // 防止数组越界导致崩溃，超出范围时返回 nil
+        let title = (self.itemTitleArray != nil && indexPath.row < self.itemTitleArray!.count) ? self.itemTitleArray![indexPath.row] : nil
+        let image = (self.itemImageArray != nil && indexPath.row < self.itemImageArray!.count) ? self.itemImageArray![indexPath.row] : nil
+        
+        cell.setupContent(title: title, image: image, property: property)
         return cell
     }
     
+    /// 处理单元格点击事件
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
         self.hide()
         
         if self.popupItemClickedBlock != nil {
-            self.popupItemClickedBlock!(self, indexPath.row, (self.itemTitleArray != nil) ? self.itemTitleArray![indexPath.row] : nil)
+            // 数组边界检查，确保访问安全
+            let title = (self.itemTitleArray != nil && indexPath.row < self.itemTitleArray!.count) ? self.itemTitleArray![indexPath.row] : nil
+            self.popupItemClickedBlock!(self, indexPath.row, title)
         }
     }
 }

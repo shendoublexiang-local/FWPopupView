@@ -102,8 +102,11 @@ extension FWDateView {
     }
     
     @objc private func btnAction(_ sender: Any) {
+        // 使用安全的类型转换
+        guard let btn = sender as? UIButton else {
+            return
+        }
         
-        let btn = sender as! UIButton
         if btn.tag == 0 && self.cancelBlock != nil {
             self.cancelBlock!()
         } else if btn.tag == 1 && self.confirmBlock != nil {

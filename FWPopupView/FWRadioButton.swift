@@ -253,8 +253,9 @@ extension FWRadioButton {
                 animation.isRemovedOnCompletion = false
                 self.insideLayer.add(animation, forKey: selected ? "scale" : "scale2")
                 self.isAnimating = true
-                DispatchQueue.main.asyncAfter(deadline: .now()+self.vProperty.animationDuration) {
-                    self.isAnimating = false
+                // 使用 [weak self] 避免循环引用
+                DispatchQueue.main.asyncAfter(deadline: .now()+self.vProperty.animationDuration) { [weak self] in
+                    self?.isAnimating = false
                 }
             } else {
                 if selected {

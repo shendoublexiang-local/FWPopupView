@@ -33,7 +33,9 @@ open class FWSheetView: FWPopupView {
     ///   - title: 标题
     ///   - itemTitles: 点击项标题
     ///   - itemBlock: 点击回调
-    ///   - cancenlBlock: 取消按钮回调（单词拼错了，将错就错吧，哈哈）
+    ///   - cancenlBlock: 取消按钮回调
+    ///     注意：参数名 cancenlBlock 拼写有误（正确应为 cancelBlock）
+    ///     但为保持向后兼容性而保留原有拼写，避免破坏现有 API
     /// - Returns: self
     @objc open class func sheet(title: String?, itemTitles: [String], itemBlock: FWPopupItemClickedBlock? = nil, cancenlBlock: FWPopupVoidBlock? = nil) -> FWSheetView {
         
@@ -271,9 +273,12 @@ extension FWSheetView {
                 var tmpArray: [UIView] = self.subviews
                 tmpArray.append(contentsOf: btnContrainerView.subviews)
                 for tmpView: UIView in tmpArray {
-                    if tmpView.isMember(of: UIButton.self) {
-                        let btn: UIButton = tmpView as! UIButton
-                        btn.setBackgroundImage(self.getImageWithColor(color: btn.backgroundColor!), for: .normal)
+                    // 使用安全的类型转换和可选绑定，避免崩溃
+                    if tmpView.isMember(of: UIButton.self),
+                       let btn = tmpView as? UIButton,
+                       let bgColor = btn.backgroundColor {
+                        
+                        btn.setBackgroundImage(self.getImageWithColor(color: bgColor), for: .normal)
                         if self.traitCollection.userInterfaceStyle == .dark {
                             btn.layer.borderColor = self.vProperty.dark_splitColor.cgColor
                             btn.setBackgroundImage(self.getImageWithColor(color: self.vProperty.dark_itemPressedColor), for: .highlighted)
@@ -291,8 +296,12 @@ extension FWSheetView {
 extension FWSheetView {
     
     @objc private func btnAction(_ sender: Any) {
+        // 使用安全的类型转换
+        guard let btn = sender as? UIButton,
+              btn.tag < self.actionItemArray.count else {
+            return
+        }
         
-        let btn = sender as! UIButton
         let item = self.actionItemArray[btn.tag]
         if item.disabled {
             return
